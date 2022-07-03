@@ -1,5 +1,6 @@
+import 'package:coinapp/pages/authentication.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/world_time.dart';
 
 class Home extends StatefulWidget {
@@ -8,8 +9,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
-
   @override
   void initState() {
     super.initState();
@@ -17,48 +16,87 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-
-    final data = ModalRoute.of(context)?.settings?.arguments as Map<String, dynamic>;
-    print(data);
+    //Map<String, dynamic> data = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    if (FirebaseAuth.instance.currentUser != null) {
+      print(FirebaseAuth.instance.currentUser);
+    }
 
     return Scaffold(
-      //appBar: AppBar(),
+      appBar: AppBar(
+        title: Text("CoinApp"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.circle_notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Authentication(),
+                ),
+              );
+            },
+          )
+        ],
+        actionsIconTheme: IconThemeData(
+          size: 32,
+        ),
+      ),
+      drawer: Drawer(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(0, 120.0, 0, 0),
-          child: Column(
-            children: <Widget>[
-              FlatButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/location');
+          child: Column(children: <Widget>[
+            Center(
+                child: StreamBuilder(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.active) {
+                      return Center(child: CircularProgressIndicator());
+                    } else {
+                      return IconButton(
+                          onPressed: () {}, icon: Icon(Icons.verified_user));
+                    }
                   },
-                  icon: Icon(Icons.edit_location),
-                  label: Text(
-                      'Edit Location'
-                  )
-              ),
-              SizedBox(height: 20.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    data['timezone'],
-                    style: TextStyle(
-                      fontSize: 28.0,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20.0),
-              Text(
-                  data['datetime'],
-                  style: TextStyle(
-                    fontSize: 66.0,
-                  )
-              ),
-            ],
-          ),
+                )),
+            FutureBuilder<WorldTime>(
+                future: getNow(),
+                builder: (BuildContext context, AsyncSnapshot<WorldTime> wt) {
+                  if (wt.hasData) {
+                    return Column(children: <Widget>[
+                      Center(
+                          child: Text(
+                            (wt.data!.datetime),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 19.0,
+                            ),
+                          )),
+                      Center(
+                          child: Text(
+                            (wt.data!.timezone),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 19.0,
+                            ),
+                          )),
+                      Center(
+                          child: Text(
+                            (wt.data!.clientip),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 19.0,
+                            ),
+                          )),
+                    ]);
+                  } else {
+                    return Center(child: Text("nodata"));
+                  }
+                })
+          ]),
         ),
       ),
     );
