@@ -2,6 +2,7 @@ import 'package:coinapp/pages/authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/world_time.dart';
+import '../services/coin_toss.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -52,16 +53,28 @@ class _HomeState extends State<Home> {
           child: Column(children: <Widget>[
             Center(
                 child: StreamBuilder(
-                  stream: FirebaseAuth.instance.authStateChanges(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.active) {
-                      return Center(child: CircularProgressIndicator());
-                    } else {
-                      return IconButton(
-                          onPressed: () {}, icon: Icon(Icons.verified_user));
-                    }
-                  },
-                )),
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.active) {
+                  return Center(child: CircularProgressIndicator());
+                } else {
+                  final ButtonStyle style = ElevatedButton.styleFrom(
+                      textStyle: const TextStyle(fontSize: 20));
+                  return ElevatedButton(
+                      onPressed: () async {
+                        await addCoin();
+                      },
+                      style: style,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.cached), // icon
+                          Text("Toss"), // text
+                        ],
+                      ));
+                }
+              },
+            )),
             FutureBuilder<WorldTime>(
                 future: getNow(),
                 builder: (BuildContext context, AsyncSnapshot<WorldTime> wt) {
@@ -69,28 +82,28 @@ class _HomeState extends State<Home> {
                     return Column(children: <Widget>[
                       Center(
                           child: Text(
-                            (wt.data!.datetime),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 19.0,
-                            ),
-                          )),
+                        (wt.data!.datetime),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19.0,
+                        ),
+                      )),
                       Center(
                           child: Text(
-                            (wt.data!.timezone),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 19.0,
-                            ),
-                          )),
+                        (wt.data!.timezone),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19.0,
+                        ),
+                      )),
                       Center(
                           child: Text(
-                            (wt.data!.clientip),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 19.0,
-                            ),
-                          )),
+                        (wt.data!.clientip),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 19.0,
+                        ),
+                      )),
                     ]);
                   } else {
                     return Center(child: Text("nodata"));
